@@ -148,6 +148,60 @@ body {
     opacity: 0.8;
 }
 
+/* 手動輸入樣式 */
+.manual-input-container {
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 16px;
+    background: var(--accent-color);
+    border: 1px solid rgba(66, 153, 225, 0.2);
+    box-shadow: var(--shadow-sm);
+}
+
+.manual-input-field {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid rgba(66, 153, 225, 0.3);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: white;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+.manual-input-field:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+}
+
+.send-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.send-btn:hover {
+    background: #1a365d;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.send-btn:active {
+    transform: translateY(0);
+}
+
 @media (max-width: 500px) {
     .container {
         width: 92%;

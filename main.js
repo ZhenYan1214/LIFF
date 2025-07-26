@@ -209,13 +209,98 @@ function startRecognition(langCode) {
     };
 }
 
-// 3. 按下語言按鈕事件00
+// 3. 按下語言按鈕事件
 langBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const lang = btn.getAttribute('data-lang');
         currentLang = lang;
-        startRecognition(lang);
+        
+        if (lang === 'manual') {
+            // 手動輸入模式
+            showManualInput();
+        } else {
+            // 語音辨識模式
+            startRecognition(lang);
+        }
     });
+});
+
+// 手動輸入相關元素
+const manualInputContainer = document.getElementById('manualInputContainer');
+const manualInput = document.getElementById('manualInput');
+const sendManualBtn = document.getElementById('sendManualBtn');
+
+// 顯示手動輸入界面
+function showManualInput() {
+    // 隱藏結果框
+    resultBox.style.display = "none";
+    
+    // 顯示手動輸入容器
+    manualInputContainer.style.display = "block";
+    
+    // 更新狀態訊息
+    statusMsg.textContent = "請在下方輸入框中輸入文字";
+    
+    // 聚焦到輸入框
+    manualInput.focus();
+}
+
+// 發送手動輸入的文字
+async function sendManualText() {
+    const text = manualInput.value.trim();
+    
+    if (!text) {
+        statusMsg.textContent = "請輸入文字";
+        return;
+    }
+    
+    if (!liffInited) {
+        statusMsg.textContent = "LIFF 未初始化，請手動複製結果";
+        return;
+    }
+    
+    try {
+        statusMsg.textContent = "嘗試發送訊息到 LINE...";
+        console.log("[DEBUG] 準備發送手動輸入的訊息:", text);
+        
+        await liff.sendMessages([
+            { type: "text", text }
+        ]);
+        
+        statusMsg.textContent = "訊息已發送！";
+        console.log("[DEBUG] 手動輸入訊息發送成功");
+        
+        // 清空輸入框
+        manualInput.value = "";
+        
+        // 如果在客戶端環境中，關閉視窗
+        if (liff.isInClient()) {
+            setTimeout(() => { 
+                liff.closeWindow(); 
+            }, 600);
+        }
+        
+    } catch (err) {
+        console.error("[DEBUG] 發送手動輸入訊息失敗:", err);
+        
+        if (err.message && err.message.includes("permissions")) {
+            statusMsg.textContent = "權限不足。請在 LINE 應用程式中重新開啟此連結並授予權限。";
+        } else if (err.message && err.message.includes("not found")) {
+            statusMsg.textContent = "LIFF 配置問題。請檢查 LIFF 設置。";
+        } else {
+            statusMsg.textContent = "發送失敗，請手動複製結果";
+        }
+    }
+}
+
+// 綁定發送按鈕事件
+sendManualBtn.addEventListener('click', sendManualText);
+
+// 綁定輸入框回車事件
+manualInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendManualText();
+    }
 });
 
 // 4. 啟動 LIFF

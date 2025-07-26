@@ -16,6 +16,11 @@
             <button class="lang-btn" data-lang="zh-TW">國語</button>
             <button class="lang-btn" data-lang="nan-TW">台語</button>
             <button class="lang-btn" data-lang="hak-TW">客語</button>
+            <button class="lang-btn manual-input" data-lang="manual">手動輸入</button>
+        </div>
+        <div class="manual-input-container" id="manualInputContainer" style="display: none;">
+            <input type="text" id="manualInput" placeholder="請輸入文字..." class="manual-input-field">
+            <button id="sendManualBtn" class="send-btn">發送到 LINE</button>
         </div>
         <div class="status" id="statusMsg">請選擇語言並開始說話</div>
         <div class="result-box" id="resultBox"></div>
