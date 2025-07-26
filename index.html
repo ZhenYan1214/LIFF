@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語音輸入｜血糖紀錄</title>
+    <!-- Google Fonts（Noto Sans TC，適合醫療風格） -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="title">語音輸入血糖紀錄</div>
+        <div class="desc"，>請選擇語言後開始說話<br>（系統會自動辨識您的語音內容）</div>
+        <div class="lang-btns">
+            <button class="lang-btn" data-lang="zh-TW">國語</button>
+            <button class="lang-btn" data-lang="nan-TW">台語</button>
+            <button class="lang-btn" data-lang="hak-TW">客語</button>
+        </div>
+        <div class="status" id="statusMsg">請選擇語言並開始說話</div>
+        <div class="result-box" id="resultBox"></div>
+        <div class="footer">© 2025 血糖小管家｜LINE 語音紀錄工具</div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
