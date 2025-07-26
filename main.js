@@ -153,18 +153,10 @@ function startRecognition(langCode) {
         }
         
         try {
-            // 嘗試直接發送訊息，不管環境
+            // 直接嘗試發送訊息
             statusMsg.textContent = "嘗試發送訊息到 LINE...";
+            console.log("[DEBUG] 準備發送訊息:", text);
             
-            // 先嘗試請求權限（如果可能的話）
-            try {
-                await liff.permission.request(['chat_message.write']);
-                console.log("[DEBUG] 權限請求完成");
-            } catch (permError) {
-                console.log("[DEBUG] 權限請求失敗，但繼續嘗試發送:", permError);
-            }
-            
-            // 嘗試發送訊息
             await liff.sendMessages([
                 { type: "text", text }
             ]);
@@ -183,9 +175,9 @@ function startRecognition(langCode) {
             console.error("[DEBUG] 發送訊息失敗:", err);
             
             if (err.message && err.message.includes("permissions")) {
-                statusMsg.textContent = "權限不足。請在 LINE 應用程式中開啟此連結，或手動複製結果。";
+                statusMsg.textContent = "權限不足。請確保在 LINE 應用程式中開啟此連結。";
             } else if (err.message && err.message.includes("not found")) {
-                statusMsg.textContent = "LIFF 配置問題。請確保在 LINE 應用程式中開啟。";
+                statusMsg.textContent = "LIFF 配置問題。請檢查 LIFF 設置。";
             } else {
                 statusMsg.textContent = "發送失敗，請手動複製結果";
             }
