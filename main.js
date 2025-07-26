@@ -60,14 +60,8 @@ async function initLiff() {
             const permissions = await liff.permission.query();
             console.log("[DEBUG] 當前權限:", permissions);
             
-            if (!permissions.canSendMessages) {W
-                console.log("[DEBUG] 沒有發送訊息權限，開始請求權限");
-                await liff.permission.request(['chat_message.write']);
-                console.log("[DEBUG] 權限請求完成");
-                
-                // 再次檢查權限
-                const newPermissions = await liff.permission.query();
-                console.log("[DEBUG] 請求後的權限:", newPermissions);
+            if (!permissions.canSendMessages) {
+                console.log("[DEBUG] 沒有發送訊息權限，跳過權限請求（在外部瀏覽器中可能不支援）");
             } else {
                 console.log("[DEBUG] 已有發送訊息權限");
             }
@@ -171,27 +165,7 @@ function startRecognition(langCode) {
         }
         
         try {
-            // 先檢查權限
-            console.log("[DEBUG] 發送前檢查權限...");
-            const permissions = await liff.permission.query();
-            console.log("[DEBUG] 發送前權限狀態:", permissions);
-            
-            if (!permissions.canSendMessages) {
-                console.log("[DEBUG] 沒有發送權限，嘗試請求權限");
-                await liff.permission.request(['chat_message.write']);
-                console.log("[DEBUG] 權限請求完成");
-                
-                // 再次檢查權限
-                const newPermissions = await liff.permission.query();
-                console.log("[DEBUG] 請求後權限狀態:", newPermissions);
-                
-                if (!newPermissions.canSendMessages) {
-                    statusMsg.textContent = "無法獲得發送訊息權限，請手動複製結果";
-                    return;
-                }
-            }
-            
-            // 發送訊息
+            // 直接嘗試發送訊息，不檢查權限（因為在外部瀏覽器中權限檢查會失敗）
             statusMsg.textContent = "嘗試發送訊息到 LINE...";
             console.log("[DEBUG] 準備發送訊息:", text);
             
