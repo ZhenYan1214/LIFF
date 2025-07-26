@@ -23,7 +23,7 @@ const langMap = {
 async function initLiff() {
     try {
         console.log("[DEBUG] initLiff called");
-        await liff.init({ liffId: "2007818922-W21zlONn" });
+        await liff.init({ liffId: "2007818922-W21zIONn" });
 
         // 登入檢查，沒登入就自動登入
         if (!liff.isLoggedIn()) {
