@@ -108,6 +108,52 @@ function startRecognition(langCode) {
     langBtns.forEach(btn => btn.classList.remove('active'));
     document.querySelector(`[data-lang="${langCode}"]`).classList.add('active');
 
+    // 檢測是否為 LINE 內建瀏覽器
+    const isLineBrowser = navigator.userAgent.includes('Line') || 
+                          navigator.userAgent.includes('LIFF') ||
+                          (liff.getOS && liff.getOS() === 'ios' || liff.getOS() === 'android');
+    
+    if (isLineBrowser) {
+        console.log("[DEBUG] 檢測到 LINE 內建瀏覽器，嘗試替代方案");
+        
+        // 嘗試使用 HTML5 語音輸入
+        try {
+            const voiceInput = document.createElement('input');
+            voiceInput.type = 'text';
+            voiceInput.setAttribute('x-webkit-speech', '');
+            voiceInput.setAttribute('speech', '');
+            voiceInput.setAttribute('lang', langCode);
+            voiceInput.style.position = 'absolute';
+            voiceInput.style.left = '-9999px';
+            
+            voiceInput.addEventListener('input', function(e) {
+                const text = e.target.value;
+                if (text) {
+                    resultBox.style.display = "block";
+                    resultBox.textContent = text;
+                    statusMsg.textContent = "語音辨識完成，準備傳回 LINE...";
+                    
+                    // 自動發送
+                    setTimeout(() => {
+                        sendToLine(text);
+                    }, 1000);
+                }
+            });
+            
+            document.body.appendChild(voiceInput);
+            voiceInput.focus();
+            
+            statusMsg.textContent = "請點擊並使用語音輸入...";
+            console.log("[DEBUG] 已創建語音輸入元素");
+            
+        } catch (error) {
+            console.log("[DEBUG] 無法創建語音輸入:", error);
+            statusMsg.textContent = "LINE 內建瀏覽器不支援語音辨識";
+        }
+        
+        return;
+    }
+
     // 建立辨識
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!window.SpeechRecognition) {
@@ -207,6 +253,44 @@ function startRecognition(langCode) {
         }
         resultBox.style.display = "none";
     };
+}
+
+// 發送到 LINE 的通用函數
+async function sendToLine(text) {
+    if (!liffInited) {
+        statusMsg.textContent = "LIFF 未初始化，請手動複製結果";
+        return;
+    }
+    
+    try {
+        statusMsg.textContent = "嘗試發送訊息到 LINE...";
+        console.log("[DEBUG] 準備發送訊息:", text);
+        
+        await liff.sendMessages([
+            { type: "text", text }
+        ]);
+        
+        statusMsg.textContent = "訊息已發送！";
+        console.log("[DEBUG] 訊息發送成功");
+        
+        // 如果在客戶端環境中，關閉視窗
+        if (liff.isInClient()) {
+            setTimeout(() => { 
+                liff.closeWindow(); 
+            }, 600);
+        }
+        
+    } catch (err) {
+        console.error("[DEBUG] 發送訊息失敗:", err);
+        
+        if (err.message && err.message.includes("permissions")) {
+            statusMsg.textContent = "權限不足。請在 LINE 應用程式中重新開啟此連結並授予權限。";
+        } else if (err.message && err.message.includes("not found")) {
+            statusMsg.textContent = "LIFF 配置問題。請檢查 LIFF 設置。";
+        } else {
+            statusMsg.textContent = "發送失敗，請手動複製結果";
+        }
+    }
 }
 
 // 3. 按下語言按鈕事件
