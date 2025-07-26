@@ -197,7 +197,7 @@ function startRecognition(langCode) {
     };
 }
 
-// 3. 按下語言按鈕事件
+// 3. 按下語言按鈕事件00
 langBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const lang = btn.getAttribute('data-lang');
