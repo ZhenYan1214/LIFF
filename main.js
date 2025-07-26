@@ -33,6 +33,23 @@ async function initLiff() {
             return; // 登入後不用往下執行，reload 會再執行一次
         }
 
+        // 檢查並請求權限
+        if (!liff.isInClient()) {
+            console.log("[DEBUG] 非 LINE 客戶端環境");
+            statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
+            return;
+        }
+
+        // 檢查是否有發送訊息的權限
+        const permissions = await liff.permission.query();
+        console.log("[DEBUG] 當前權限:", permissions);
+        
+        if (!permissions.canSendMessages) {
+            console.log("[DEBUG] 請求發送訊息權限");
+            await liff.permission.request(['chat_message.write']);
+            console.log("[DEBUG] 權限請求完成");
+        }
+
         liffInited = true;
         console.log("[DEBUG] LIFF 初始化成功，已登入用戶");
     } catch (e) {
@@ -81,26 +98,52 @@ function startRecognition(langCode) {
     };
 
     // 完成時自動傳回聊天框
-    recognition.onend = function() {
+    recognition.onend = async function() {
         const text = resultBox.textContent.trim();
         if (!text) {
             statusMsg.textContent = "未偵測到語音，請再試一次";
             resultBox.style.display = "none";
             return;
         }
-        statusMsg.textContent = "語音辨識完成，已自動回傳至 LINE";
-        // 傳回 LINE 聊天室
-        if (liffInited && liff.getContext && liff.getContext().type !== "none") {
-            liff.sendMessages([
+        
+        statusMsg.textContent = "語音辨識完成，準備傳回 LINE...";
+        
+        // 檢查環境和權限
+        if (!liffInited) {
+            statusMsg.textContent = "LIFF 未初始化，請手動複製結果";
+            return;
+        }
+        
+        if (!liff.isInClient()) {
+            statusMsg.textContent = "非 LINE 客戶端環境，請手動複製結果";
+            return;
+        }
+        
+        try {
+            // 再次檢查權限
+            const permissions = await liff.permission.query();
+            if (!permissions.canSendMessages) {
+                statusMsg.textContent = "沒有發送訊息權限，請手動複製結果";
+                return;
+            }
+            
+            // 發送訊息
+            await liff.sendMessages([
                 { type: "text", text }
-            ]).then(() => {
-                setTimeout(() => { liff.closeWindow(); }, 600);
-            }).catch(err => {
+            ]);
+            
+            statusMsg.textContent = "訊息已發送，即將關閉視窗...";
+            setTimeout(() => { 
+                liff.closeWindow(); 
+            }, 600);
+            
+        } catch (err) {
+            console.error("[DEBUG] 發送訊息失敗:", err);
+            if (err.message && err.message.includes("permissions")) {
+                statusMsg.textContent = "權限不足，請手動複製結果";
+            } else {
                 statusMsg.textContent = "發送失敗，請手動複製結果";
-                console.error(err);
-            });
-        } else {
-            statusMsg.textContent = "非 LINE 環境，請手動複製";
+            }
         }
     };
 
