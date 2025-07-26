@@ -23,14 +23,24 @@ const langMap = {
 async function initLiff() {
     try {
         console.log("[DEBUG] initLiff called");
-        await liff.init({ liffId: "2007818922-W21zlONn" });  // <--- 請換成你自己的 LIFF ID
+        await liff.init({ liffId: "2007818922-W21zlONn" });
+
+        // 登入檢查，沒登入就自動登入
+        if (!liff.isLoggedIn()) {
+            console.log("[DEBUG] 用戶未登入，執行 liff.login()");
+            liff.login();
+            // login 完會自動 reload 頁面
+            return; // 登入後不用往下執行，reload 會再執行一次
+        }
+
         liffInited = true;
-        console.log("[DEBUG] LIFF 初始化成功");
+        console.log("[DEBUG] LIFF 初始化成功，已登入用戶");
     } catch (e) {
         statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
         console.error("[DEBUG] LIFF 初始化失敗", e);
     }
 }
+
 
 // 2. 啟動語音辨識
 function startRecognition(langCode) {
