@@ -199,11 +199,11 @@ function startRecognition(langCode) {
     recognition.onerror = function(event) {
         console.error("[DEBUG] 語音辨識錯誤", event);
         if (event.error === "service-not-allowed") {
-            statusMsg.textContent = "語音辨識錯誤：瀏覽器未允許麥克風或不支援語音辨識。\n請確認已允許麥克風權限，或改用 Chrome/Edge 開啟本頁。\nLINE 內建瀏覽器通常不支援語音辨識。";
+            statusMsg.textContent = "語音辨識錯誤：瀏覽器未允許麥克風或不支援語音辨識。\n請確認已允許麥克風權限，或改用 Chrome/Edge 開啟本頁。\nLINE 內建瀏覽器通常不支援語音辨識。\n\n💡 建議：使用「手動輸入」功能，或將語音輸入到手機備忘錄後複製貼上。";
         } else if (event.error === "not-allowed") {
-            statusMsg.textContent = "語音辨識錯誤：未允許麥克風權限，請檢查瀏覽器設定。";
+            statusMsg.textContent = "語音辨識錯誤：未允許麥克風權限，請檢查瀏覽器設定。\n\n💡 建議：使用「手動輸入」功能。";
         } else {
-            statusMsg.textContent = "語音辨識錯誤：" + event.error;
+            statusMsg.textContent = "語音辨識錯誤：" + event.error + "\n\n💡 建議：使用「手動輸入」功能。";
         }
         resultBox.style.display = "none";
     };
