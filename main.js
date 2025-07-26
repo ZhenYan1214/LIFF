@@ -66,6 +66,7 @@ async function initLiff() {
             }
         } catch (permissionError) {
             console.log("[DEBUG] 權限檢查失敗，但繼續執行:", permissionError);
+            // 在外部瀏覽器中，權限檢查可能會失敗，但我們仍然可以嘗試發送訊息
         }
 
         liffInited = true;
@@ -139,11 +140,12 @@ function startRecognition(langCode) {
             return;
         }
         
-        // 檢查是否在 LINE 環境中
+        // 檢查是否在 LINE 環境中（更寬鬆的檢查）
         const isLineEnvironment = liff.isInClient() || 
                                 navigator.userAgent.includes('Line') || 
                                 navigator.userAgent.includes('LIFF') ||
-                                window.location.href.includes('liff.line.me');
+                                window.location.href.includes('liff.line.me') ||
+                                window.location.href.includes('vercel.app'); // 允許在 Vercel 部署的版本中運行
         
         if (!isLineEnvironment) {
             statusMsg.textContent = "非 LINE 環境，請手動複製結果";
