@@ -40,34 +40,30 @@ async function initLiff() {
         console.log("[DEBUG] liff.getLanguage():", liff.getLanguage());
         console.log("[DEBUG] liff.getVersion():", liff.getVersion());
 
-        // 檢查並請求權限
-        if (!liff.isInClient()) {
-            console.log("[DEBUG] 非 LINE 客戶端環境");
-            console.log("[DEBUG] 當前 URL:", window.location.href);
-            console.log("[DEBUG] User Agent:", navigator.userAgent);
-            
-            // 檢查是否在 LINE 瀏覽器中
-            const isLineBrowser = navigator.userAgent.includes('Line') || 
+        // 檢查是否在 LINE 環境中
+        const isLineEnvironment = liff.isInClient() || 
+                                navigator.userAgent.includes('Line') || 
                                 navigator.userAgent.includes('LIFF') ||
                                 window.location.href.includes('liff.line.me');
-            
-            if (isLineBrowser) {
-                console.log("[DEBUG] 檢測到 LINE 瀏覽器環境");
-                statusMsg.textContent = "檢測到 LINE 環境，但權限可能不足。請確保從 LINE 聊天室開啟此連結。";
-            } else {
-                statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
-            }
+
+        if (!isLineEnvironment) {
+            console.log("[DEBUG] 非 LINE 環境");
+            statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
             return;
         }
 
-        // 檢查是否有發送訊息的權限
-        const permissions = await liff.permission.query();
-        console.log("[DEBUG] 當前權限:", permissions);
-        
-        if (!permissions.canSendMessages) {
-            console.log("[DEBUG] 請求發送訊息權限");
-            await liff.permission.request(['chat_message.write']);
-            console.log("[DEBUG] 權限請求完成");
+        // 檢查並請求權限
+        try {
+            const permissions = await liff.permission.query();
+            console.log("[DEBUG] 當前權限:", permissions);
+            
+            if (!permissions.canSendMessages) {
+                console.log("[DEBUG] 請求發送訊息權限");
+                await liff.permission.request(['chat_message.write']);
+                console.log("[DEBUG] 權限請求完成");
+            }
+        } catch (permissionError) {
+            console.log("[DEBUG] 權限檢查失敗，但繼續執行:", permissionError);
         }
 
         liffInited = true;
@@ -146,22 +142,37 @@ function startRecognition(langCode) {
         }
         
         try {
-            // 再次檢查權限
-            const permissions = await liff.permission.query();
-            if (!permissions.canSendMessages) {
-                statusMsg.textContent = "沒有發送訊息權限，請手動複製結果";
-                return;
+            // 檢查是否在真正的 LINE 客戶端環境中
+            if (liff.isInClient()) {
+                // 再次檢查權限
+                const permissions = await liff.permission.query();
+                if (!permissions.canSendMessages) {
+                    statusMsg.textContent = "沒有發送訊息權限，請手動複製結果";
+                    return;
+                }
+                
+                // 發送訊息
+                await liff.sendMessages([
+                    { type: "text", text }
+                ]);
+                
+                statusMsg.textContent = "訊息已發送，即將關閉視窗...";
+                setTimeout(() => { 
+                    liff.closeWindow(); 
+                }, 600);
+            } else {
+                // 非客戶端環境：嘗試發送但可能失敗
+                statusMsg.textContent = "嘗試發送訊息到 LINE...";
+                try {
+                    await liff.sendMessages([
+                        { type: "text", text }
+                    ]);
+                    statusMsg.textContent = "訊息已發送";
+                } catch (sendError) {
+                    statusMsg.textContent = "發送失敗，請手動複製結果";
+                    console.error("[DEBUG] 發送失敗:", sendError);
+                }
             }
-            
-            // 發送訊息
-            await liff.sendMessages([
-                { type: "text", text }
-            ]);
-            
-            statusMsg.textContent = "訊息已發送，即將關閉視窗...";
-            setTimeout(() => { 
-                liff.closeWindow(); 
-            }, 600);
             
         } catch (err) {
             console.error("[DEBUG] 發送訊息失敗:", err);
