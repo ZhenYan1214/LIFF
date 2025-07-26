@@ -105,7 +105,14 @@ function startRecognition(langCode) {
     };
 
     recognition.onerror = function(event) {
-        statusMsg.textContent = "語音辨識錯誤：" + event.error;
+        console.error("[DEBUG] 語音辨識錯誤", event);
+        if (event.error === "service-not-allowed") {
+            statusMsg.textContent = "語音辨識錯誤：瀏覽器未允許麥克風或不支援語音辨識。\n請確認已允許麥克風權限，或改用 Chrome/Edge 開啟本頁。\nLINE 內建瀏覽器通常不支援語音辨識。";
+        } else if (event.error === "not-allowed") {
+            statusMsg.textContent = "語音辨識錯誤：未允許麥克風權限，請檢查瀏覽器設定。";
+        } else {
+            statusMsg.textContent = "語音辨識錯誤：" + event.error;
+        }
         resultBox.style.display = "none";
     };
 }
