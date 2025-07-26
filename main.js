@@ -22,11 +22,13 @@ const langMap = {
 // 1. 初始化 LIFF
 async function initLiff() {
     try {
+        console.log("[DEBUG] initLiff called");
         await liff.init({ liffId: "2007818922-W21zlONn" });  // <--- 請換成你自己的 LIFF ID
         liffInited = true;
+        console.log("[DEBUG] LIFF 初始化成功");
     } catch (e) {
         statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
-        console.error(e);
+        console.error("[DEBUG] LIFF 初始化失敗", e);
     }
 }
 
@@ -109,9 +111,13 @@ langBtns.forEach(btn => {
 
 // 4. 啟動 LIFF
 window.onload = () => {
+    console.log("[DEBUG] window.onload 執行");
+    console.log("[DEBUG] window.liff:", window.liff);
     if (window.liff) {
+        console.log("[DEBUG] 偵測到 window.liff，開始初始化");
         initLiff();
     } else {
         statusMsg.textContent = "無法偵測到 LIFF，請從 LINE 開啟";
+        console.error("[DEBUG] 無法偵測到 window.liff");
     }
 };
