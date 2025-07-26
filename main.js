@@ -22,7 +22,7 @@ const langMap = {
 // 1. 初始化 LIFF
 async function initLiff() {
     try {
-        await liff.init({ liffId: "2007818922-7r8Wdy2v" });  // <--- 請換成你自己的 LIFF ID
+        await liff.init({ liffId: "2007818922-W21zlONn" });  // <--- 請換成你自己的 LIFF ID
         liffInited = true;
     } catch (e) {
         statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
