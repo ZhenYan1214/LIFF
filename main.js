@@ -31,13 +31,33 @@ async function initLiff() {
             return liff.login(); // 登入後會自動 reload
         }
 
-        // 3. 檢查 chat_message.write 權限
-        const scopes = liff.getGrantedScopes();
-        console.log("[DEBUG] 已取得的 scopes:", scopes);
-        if (!scopes.includes('chat_message.write')) {
+        // 3. 檢查 chat_message.write 權限（相容舊版 LIFF SDK）
+        let hasChatMessageWrite = false;
+        if (typeof liff.getGrantedScopes === 'function') {
+            const scopes = liff.getGrantedScopes();
+            console.log("[DEBUG] 已取得的 scopes:", scopes);
+            hasChatMessageWrite = scopes.includes('chat_message.write');
+        } else if (liff.permission && typeof liff.permission.queryPermission === 'function') {
+            // fallback: 用 queryPermission 查詢
+            try {
+                const result = await liff.permission.queryPermission('chat_message.write');
+                console.log("[DEBUG] queryPermission result:", result);
+                hasChatMessageWrite = result.state === 'granted';
+            } catch (err) {
+                console.error("[DEBUG] queryPermission error", err);
+            }
+        } else {
+            console.warn("[DEBUG] 無法檢查 chat_message.write 權限，請確認 LIFF SDK 版本");
+        }
+        if (!hasChatMessageWrite) {
             console.log("[DEBUG] 尚未授權 chat_message.write，請求權限");
-            await liff.permission.requestPermission('chat_message.write');
-            return; // 授權後頁面 reload
+            if (liff.permission && typeof liff.permission.requestPermission === 'function') {
+                await liff.permission.requestPermission('chat_message.write');
+                return; // 授權後頁面 reload
+            } else {
+                statusMsg.textContent = "LIFF SDK 不支援權限請求，請更新 LIFF SDK 至最新版";
+                return;
+            }
         }
 
         // 4. 一切就緒
