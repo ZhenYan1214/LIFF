@@ -145,7 +145,7 @@ function startRecognition(langCode) {
                                 navigator.userAgent.includes('Line') || 
                                 navigator.userAgent.includes('LIFF') ||
                                 window.location.href.includes('liff.line.me') ||
-                                window.location.href.includes('vercel.app'); // 允許在 Vercel 部署的版本中運行
+                                window.location.href.includes('vercel.app'); 
         
         if (!isLineEnvironment) {
             statusMsg.textContent = "非 LINE 環境，請手動複製結果";
