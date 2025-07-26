@@ -25,44 +25,16 @@ async function initLiff() {
         console.log("[DEBUG] initLiff called");
         await liff.init({ liffId: "2007818922-W21zlONn" });
 
-        // 2. 強制登入（保持原本邏輯）
+        // 登入檢查，沒登入就自動登入
         if (!liff.isLoggedIn()) {
             console.log("[DEBUG] 用戶未登入，執行 liff.login()");
-            return liff.login(); // 登入後會自動 reload
+            liff.login();
+            // login 完會自動 reload 頁面
+            return; // 登入後不用往下執行，reload 會再執行一次
         }
 
-        // 3. 檢查 chat_message.write 權限（相容舊版 LIFF SDK）
-        let hasChatMessageWrite = false;
-        if (typeof liff.getGrantedScopes === 'function') {
-            const scopes = liff.getGrantedScopes();
-            console.log("[DEBUG] 已取得的 scopes:", scopes);
-            hasChatMessageWrite = scopes.includes('chat_message.write');
-        } else if (liff.permission && typeof liff.permission.queryPermission === 'function') {
-            // fallback: 用 queryPermission 查詢
-            try {
-                const result = await liff.permission.queryPermission('chat_message.write');
-                console.log("[DEBUG] queryPermission result:", result);
-                hasChatMessageWrite = result.state === 'granted';
-            } catch (err) {
-                console.error("[DEBUG] queryPermission error", err);
-            }
-        } else {
-            console.warn("[DEBUG] 無法檢查 chat_message.write 權限，請確認 LIFF SDK 版本");
-        }
-        if (!hasChatMessageWrite) {
-            console.log("[DEBUG] 尚未授權 chat_message.write，請求權限");
-            if (liff.permission && typeof liff.permission.requestPermission === 'function') {
-                await liff.permission.requestPermission('chat_message.write');
-                return; // 授權後頁面 reload
-            } else {
-                statusMsg.textContent = "LIFF SDK 不支援權限請求，請更新 LIFF SDK 至最新版";
-                return;
-            }
-        }
-
-        // 4. 一切就緒
         liffInited = true;
-        console.log("[DEBUG] LIFF ready & chat_message.write granted");
+        console.log("[DEBUG] LIFF 初始化成功，已登入用戶");
     } catch (e) {
         statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
         console.error("[DEBUG] LIFF 初始化失敗", e);
