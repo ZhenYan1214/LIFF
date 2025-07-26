@@ -33,10 +33,30 @@ async function initLiff() {
             return; // 登入後不用往下執行，reload 會再執行一次
         }
 
+        // 詳細的環境檢查
+        console.log("[DEBUG] liff.isInClient():", liff.isInClient());
+        console.log("[DEBUG] liff.getContext():", liff.getContext());
+        console.log("[DEBUG] liff.getOS():", liff.getOS());
+        console.log("[DEBUG] liff.getLanguage():", liff.getLanguage());
+        console.log("[DEBUG] liff.getVersion():", liff.getVersion());
+
         // 檢查並請求權限
         if (!liff.isInClient()) {
             console.log("[DEBUG] 非 LINE 客戶端環境");
-            statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
+            console.log("[DEBUG] 當前 URL:", window.location.href);
+            console.log("[DEBUG] User Agent:", navigator.userAgent);
+            
+            // 檢查是否在 LINE 瀏覽器中
+            const isLineBrowser = navigator.userAgent.includes('Line') || 
+                                navigator.userAgent.includes('LIFF') ||
+                                window.location.href.includes('liff.line.me');
+            
+            if (isLineBrowser) {
+                console.log("[DEBUG] 檢測到 LINE 瀏覽器環境");
+                statusMsg.textContent = "檢測到 LINE 環境，但權限可能不足。請確保從 LINE 聊天室開啟此連結。";
+            } else {
+                statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
+            }
             return;
         }
 
@@ -114,8 +134,14 @@ function startRecognition(langCode) {
             return;
         }
         
-        if (!liff.isInClient()) {
-            statusMsg.textContent = "非 LINE 客戶端環境，請手動複製結果";
+        // 檢查是否在 LINE 環境中
+        const isLineEnvironment = liff.isInClient() || 
+                                navigator.userAgent.includes('Line') || 
+                                navigator.userAgent.includes('LIFF') ||
+                                window.location.href.includes('liff.line.me');
+        
+        if (!isLineEnvironment) {
+            statusMsg.textContent = "非 LINE 環境，請手動複製結果";
             return;
         }
         
