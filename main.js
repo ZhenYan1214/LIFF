@@ -153,42 +153,39 @@ function startRecognition(langCode) {
         }
         
         try {
-            // 檢查是否在真正的 LINE 客戶端環境中
+            // 嘗試直接發送訊息，不管環境
+            statusMsg.textContent = "嘗試發送訊息到 LINE...";
+            
+            // 先嘗試請求權限（如果可能的話）
+            try {
+                await liff.permission.request(['chat_message.write']);
+                console.log("[DEBUG] 權限請求完成");
+            } catch (permError) {
+                console.log("[DEBUG] 權限請求失敗，但繼續嘗試發送:", permError);
+            }
+            
+            // 嘗試發送訊息
+            await liff.sendMessages([
+                { type: "text", text }
+            ]);
+            
+            statusMsg.textContent = "訊息已發送！";
+            console.log("[DEBUG] 訊息發送成功");
+            
+            // 如果在客戶端環境中，關閉視窗
             if (liff.isInClient()) {
-                // 再次檢查權限
-                const permissions = await liff.permission.query();
-                if (!permissions.canSendMessages) {
-                    statusMsg.textContent = "沒有發送訊息權限，請手動複製結果";
-                    return;
-                }
-                
-                // 發送訊息
-                await liff.sendMessages([
-                    { type: "text", text }
-                ]);
-                
-                statusMsg.textContent = "訊息已發送，即將關閉視窗...";
                 setTimeout(() => { 
                     liff.closeWindow(); 
                 }, 600);
-            } else {
-                // 非客戶端環境：嘗試發送但可能失敗
-                statusMsg.textContent = "嘗試發送訊息到 LINE...";
-                try {
-                    await liff.sendMessages([
-                        { type: "text", text }
-                    ]);
-                    statusMsg.textContent = "訊息已發送";
-                } catch (sendError) {
-                    statusMsg.textContent = "發送失敗，請手動複製結果";
-                    console.error("[DEBUG] 發送失敗:", sendError);
-                }
             }
             
         } catch (err) {
             console.error("[DEBUG] 發送訊息失敗:", err);
+            
             if (err.message && err.message.includes("permissions")) {
-                statusMsg.textContent = "權限不足，請手動複製結果";
+                statusMsg.textContent = "權限不足。請在 LINE 應用程式中開啟此連結，或手動複製結果。";
+            } else if (err.message && err.message.includes("not found")) {
+                statusMsg.textContent = "LIFF 配置問題。請確保在 LINE 應用程式中開啟。";
             } else {
                 statusMsg.textContent = "發送失敗，請手動複製結果";
             }
