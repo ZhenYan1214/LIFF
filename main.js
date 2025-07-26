@@ -23,7 +23,10 @@ const langMap = {
 async function initLiff() {
     try {
         console.log("[DEBUG] initLiff called");
-        await liff.init({ liffId: "2007818922-W21zIONn" });
+        console.log("[DEBUG] 當前 URL:", window.location.href);
+        console.log("[DEBUG] User Agent:", navigator.userAgent);
+        
+        await liff.init({ liffId: "2007818922-W21zlONn" });
 
         // 登入檢查，沒登入就自動登入
         if (!liff.isLoggedIn()) {
@@ -47,9 +50,8 @@ async function initLiff() {
                                 window.location.href.includes('liff.line.me');
 
         if (!isLineEnvironment) {
-            console.log("[DEBUG] 非 LINE 環境");
-            statusMsg.textContent = "請在 LINE 應用程式中開啟此頁面";
-            return;
+            console.log("[DEBUG] 非 LINE 環境，但允許繼續執行");
+            console.log("[DEBUG] 這可能是測試環境，將嘗試發送訊息");
         }
 
         // 檢查並請求權限
@@ -69,8 +71,15 @@ async function initLiff() {
         liffInited = true;
         console.log("[DEBUG] LIFF 初始化成功，已登入用戶");
     } catch (e) {
-        statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
         console.error("[DEBUG] LIFF 初始化失敗", e);
+        
+        // 如果是 LIFF app not found 錯誤，可能是測試環境
+        if (e.message && e.message.includes("not found")) {
+            console.log("[DEBUG] LIFF app not found，可能是測試環境");
+            statusMsg.textContent = "LIFF 配置問題，請確保在 LINE 應用程式中開啟";
+        } else {
+            statusMsg.textContent = "LIFF 初始化失敗，請重新整理";
+        }
     }
 }
 
