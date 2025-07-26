@@ -56,13 +56,20 @@ async function initLiff() {
 
         // 檢查並請求權限
         try {
+            console.log("[DEBUG] 開始檢查權限...");
             const permissions = await liff.permission.query();
             console.log("[DEBUG] 當前權限:", permissions);
             
-            if (!permissions.canSendMessages) {
-                console.log("[DEBUG] 請求發送訊息權限");
+            if (!permissions.canSendMessages) {W
+                console.log("[DEBUG] 沒有發送訊息權限，開始請求權限");
                 await liff.permission.request(['chat_message.write']);
                 console.log("[DEBUG] 權限請求完成");
+                
+                // 再次檢查權限
+                const newPermissions = await liff.permission.query();
+                console.log("[DEBUG] 請求後的權限:", newPermissions);
+            } else {
+                console.log("[DEBUG] 已有發送訊息權限");
             }
         } catch (permissionError) {
             console.log("[DEBUG] 權限檢查失敗，但繼續執行:", permissionError);
@@ -71,6 +78,17 @@ async function initLiff() {
 
         liffInited = true;
         console.log("[DEBUG] LIFF 初始化成功，已登入用戶");
+        
+        // 顯示用戶信息
+        try {
+            const profile = await liff.getProfile();
+            console.log("[DEBUG] 用戶資料:", profile);
+            statusMsg.textContent = `歡迎 ${profile.displayName}！語音辨識功能已準備就緒。`;
+        } catch (profileError) {
+            console.log("[DEBUG] 無法取得用戶資料:", profileError);
+            statusMsg.textContent = "語音辨識功能已準備就緒。";
+        }
+        
     } catch (e) {
         console.error("[DEBUG] LIFF 初始化失敗", e);
         
@@ -153,7 +171,27 @@ function startRecognition(langCode) {
         }
         
         try {
-            // 直接嘗試發送訊息
+            // 先檢查權限
+            console.log("[DEBUG] 發送前檢查權限...");
+            const permissions = await liff.permission.query();
+            console.log("[DEBUG] 發送前權限狀態:", permissions);
+            
+            if (!permissions.canSendMessages) {
+                console.log("[DEBUG] 沒有發送權限，嘗試請求權限");
+                await liff.permission.request(['chat_message.write']);
+                console.log("[DEBUG] 權限請求完成");
+                
+                // 再次檢查權限
+                const newPermissions = await liff.permission.query();
+                console.log("[DEBUG] 請求後權限狀態:", newPermissions);
+                
+                if (!newPermissions.canSendMessages) {
+                    statusMsg.textContent = "無法獲得發送訊息權限，請手動複製結果";
+                    return;
+                }
+            }
+            
+            // 發送訊息
             statusMsg.textContent = "嘗試發送訊息到 LINE...";
             console.log("[DEBUG] 準備發送訊息:", text);
             
@@ -175,7 +213,7 @@ function startRecognition(langCode) {
             console.error("[DEBUG] 發送訊息失敗:", err);
             
             if (err.message && err.message.includes("permissions")) {
-                statusMsg.textContent = "權限不足。請確保在 LINE 應用程式中開啟此連結。";
+                statusMsg.textContent = "權限不足。請在 LINE 應用程式中重新開啟此連結並授予權限。";
             } else if (err.message && err.message.includes("not found")) {
                 statusMsg.textContent = "LIFF 配置問題。請檢查 LIFF 設置。";
             } else {
